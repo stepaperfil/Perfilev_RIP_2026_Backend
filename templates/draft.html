@@ -11,44 +11,69 @@
                 <span class="draft-badge">не опубликовано</span>
             </div>
 
-            <h2>Медиа</h2>
-            <div class="draft-media">
-                <div class="draft-media-block">
-                    <svg class="draft-media-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="18" height="18" rx="3"></rect>
-                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                        <path d="M21 15l-5-5L5 21"></path>
-                    </svg>
-                    <span>изображение</span>
-                    <input type="text" class="draft-field draft-field-media" value="" placeholder="файл не выбран">
+            {{ if not .found }}
+            <form action="/stages" method="POST">
+                <h2 class="draft-h2-tight">Медиа</h2>
+                <div class="draft-media">
+                    <div class="draft-media-block">
+                        <svg class="draft-media-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <path d="M21 15l-5-5L5 21"></path>
+                        </svg>
+                        <span>изображение</span>
+                        <input type="text" class="draft-field draft-field-media" value="" placeholder="файл не выбран" disabled>
+                    </div>
+                    <div class="draft-media-block">
+                        <svg class="draft-media-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="5" width="18" height="14" rx="3"></rect>
+                            <path d="M10 9.5l5.5 2.5-5.5 2.5z" fill="currentColor" stroke="none"></path>
+                        </svg>
+                        <span>видео</span>
+                        <input type="text" class="draft-field draft-field-media" value="" placeholder="файл не выбран" disabled>
+                    </div>
                 </div>
-                <div class="draft-media-block">
-                    <svg class="draft-media-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="5" width="18" height="14" rx="3"></rect>
-                        <path d="M10 9.5l5.5 2.5-5.5 2.5z" fill="currentColor" stroke="none"></path>
-                    </svg>
-                    <span>видео</span>
-                    <input type="text" class="draft-field draft-field-media" value="" placeholder="файл не выбран">
+
+                <h2>Название</h2>
+                <input type="text" class="draft-field" name="title" placeholder="Введите название этапа">
+
+                <button type="submit" class="draft-submit-btn">Далее</button>
+            </form>
+            {{ else }}
+            <h2 class="draft-h2-tight">Медиа</h2>
+            <div class="draft-media">
+                <div class="draft-media-block draft-media-preview">
+                    <img class="draft-preview-image" src="{{ .imageURL }}" alt="{{ .stage.Title }}">
+                    <span>изображение по умолчанию</span>
+                </div>
+                <div class="draft-media-block draft-media-preview">
+                    <video class="draft-preview-video" src="{{ .videoURL }}" muted loop playsinline></video>
+                    <span>видео по умолчанию</span>
                 </div>
             </div>
 
             <h2>Название</h2>
-            <input type="text" class="draft-field" value="{{ .stage.Title }}">
+            <input type="text" class="draft-field" value="{{ .stage.Title }}" disabled>
 
-            <h2>Описание</h2>
-            <textarea class="draft-field draft-field-tall">{{ .stage.Description }}</textarea>
+            <form action="/stages/{{ .stage.ID }}/publish" method="POST">
+                <h2>Краткое описание</h2>
+                <textarea class="draft-field draft-field-tall" name="description">{{ .stage.Description }}</textarea>
 
-            <h2>Параметры этапа</h2>
-            <div class="draft-params">
-                <div>
-                    <span>Цена за единицу</span>
-                    <input type="text" class="draft-field" value="{{ formatPrice .stage.PricePerUnit }} ₽">
+                <h2>Параметры этапа</h2>
+                <div class="draft-params">
+                    <div>
+                        <span>Цена за единицу</span>
+                        <input type="number" class="draft-field" name="pricePerUnit" value="{{ .stage.PricePerUnit }}">
+                    </div>
+                    <div>
+                        <span>Порядковый номер</span>
+                        <input type="number" class="draft-field" name="stagePosition" value="{{ .stage.StagePosition }}">
+                    </div>
                 </div>
-                <div>
-                    <span>Порядковый номер</span>
-                    <input type="text" class="draft-field" value="{{ .stage.StagePosition }}">
-                </div>
-            </div>
+
+                <button type="submit" class="draft-submit-btn">Опубликовать</button>
+            </form>
+            {{ end }}
         </div>
     </div>
     <nav class="tabbar">

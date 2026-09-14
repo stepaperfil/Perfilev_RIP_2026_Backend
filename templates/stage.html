@@ -12,13 +12,10 @@
         {{ end }}
         <div class="feed-overlay">
             <div class="feed-likes">
-                <input type="checkbox" id="like-toggle" class="feed-like-toggle-input">
-                <label for="like-toggle" class="feed-likes-btn">
-                    <span class="feed-likes-icon icon-unliked">🤍</span>
-                    <span class="feed-likes-icon icon-liked">💚</span>
-                    <span class="feed-likes-count count-unliked">{{ .likesCount }}</span>
-                    <span class="feed-likes-count count-liked">{{ plus1 .likesCount }}</span>
-                </label>
+                <div class="feed-likes-static">
+                    <span class="feed-likes-icon">💚</span>
+                    <span class="feed-likes-count">{{ .likesCount }}</span>
+                </div>
                 <a class="feed-next" href="/stages/{{ .stage.ID }}?next=true" aria-label="Следующий этап">→</a>
             </div>
 

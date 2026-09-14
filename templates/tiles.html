@@ -7,7 +7,7 @@
     <div class="content">
         <h2>Этапы жизненного цикла</h2>
         <form class="filter" action="/stages" method="GET">
-            <input type="number" name="maxPrice" placeholder="Фильтр по цене за единицу" value="{{ .maxPrice }}">
+            <input type="number" name="maxPrice" placeholder="Цена за единицу, ₽" value="{{ .maxPrice }}">
             <button type="submit" aria-label="Применить фильтр">›</button>
         </form>
         <ul class="tiles">
@@ -26,6 +26,9 @@
                         </div>
                     </div>
                 </a>
+                <form class="tile-delete" action="/stages/{{ .Stage.ID }}/delete" method="POST">
+                    <button type="submit">Удалить</button>
+                </form>
             </li>
             {{ end }}
         </ul>

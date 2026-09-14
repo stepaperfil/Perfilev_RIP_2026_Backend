@@ -1,225 +1,136 @@
 package repository
 
-import "fmt"
+import (
+	"errors"
+	"time"
 
-type LifecycleStage struct {
-	ID          int
-	Title       string
-	Description string
-	ImageKey    string
-	VideoKey    string
-	Status      string
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 
-	Likes []int
-
-	PricePerUnit  int
-	StagePosition int
-}
+	"tco-backend/internal/app/ds"
+)
 
 type Repository struct {
+	db *gorm.DB
 }
 
-func NewRepository() (*Repository, error) {
-	return &Repository{}, nil
-}
-
-func (r *Repository) GetLifecycleStages() ([]LifecycleStage, error) {
-	stages := []LifecycleStage{
-		{
-			ID:            1,
-			Title:         "Закупка станка ЧПУ DMU 50",
-			Description:   "Покупка нового фрезерного станка с ЧПУ для цеха №2, включая доставку и монтаж",
-			ImageKey:      "purchase-dmu50.jpg",
-			VideoKey:      "purchase-dmu50.mp4",
-			Status:        "published",
-			Likes:         makeLikes(24),
-			PricePerUnit:  11475400,
-			StagePosition: 1,
-		},
-		{
-			ID:            2,
-			Title:         "Ввод в эксплуатацию",
-			Description:   "Пусконаладочные работы, калибровка осей и обучение оператора станка",
-			ImageKey:      "commissioning.jpg",
-			VideoKey:      "commissioning.mp4",
-			Status:        "published",
-			Likes:         makeLikes(9),
-			PricePerUnit:  94860,
-			StagePosition: 2,
-		},
-		{
-			ID:            3,
-			Title:         "Плановое ТО №1",
-			Description:   "Регулярное техническое обслуживание по регламенту производителя",
-			ImageKey:      "maintenance-1.jpg",
-			VideoKey:      "maintenance.mp4",
-			Status:        "published",
-			Likes:         makeLikes(15),
-			PricePerUnit:  79050,
-			StagePosition: 3,
-		},
-		{
-			ID:            4,
-			Title:         "Замена комплектующих",
-			Description:   "Плановая замена режущего инструмента на фрезерном станке ЧПУ, цех №2",
-			ImageKey:      "steel.jpg",
-			VideoKey:      "repair.mp4",
-			Status:        "draft",
-			Likes:         nil,
-			PricePerUnit:  20000,
-			StagePosition: 3,
-		},
-		{
-			ID:            5,
-			Title:         "Внеплановый ремонт №1",
-			Description:   "Диагностика и устранение неисправности шпиндельного узла",
-			ImageKey:      "repair-1.jpg",
-			VideoKey:      "repair.mp4",
-			Status:        "published",
-			Likes:         makeLikes(6),
-			PricePerUnit:  63240,
-			StagePosition: 3,
-		},
-		{
-			ID:            6,
-			Title:         "Плановое ТО №2",
-			Description:   "Регулярное техническое обслуживание по регламенту производителя",
-			ImageKey:      "maintenance-2.jpg",
-			VideoKey:      "maintenance.mp4",
-			Status:        "published",
-			Likes:         makeLikes(12),
-			PricePerUnit:  79050,
-			StagePosition: 3,
-		},
-		{
-			ID:            7,
-			Title:         "Модернизация ЧПУ",
-			Description:   "Ретрофит системы ЧПУ и приводов для продления срока службы станка",
-			ImageKey:      "retrofit.jpg",
-			VideoKey:      "retrofit.mp4",
-			Status:        "published",
-			Likes:         makeLikes(11),
-			PricePerUnit:  8000000,
-			StagePosition: 3,
-		},
-		{
-			ID:            8,
-			Title:         "Плановое ТО №3",
-			Description:   "Регулярное техническое обслуживание по регламенту производителя",
-			ImageKey:      "maintenance-3.jpg",
-			VideoKey:      "maintenance.mp4",
-			Status:        "published",
-			Likes:         makeLikes(8),
-			PricePerUnit:  79050,
-			StagePosition: 3,
-		},
-		{
-			ID:            9,
-			Title:         "Внеплановый ремонт №2",
-			Description:   "Диагностика и устранение неисправности механизма подачи охлаждающей жидкости",
-			ImageKey:      "repair-2.jpg",
-			VideoKey:      "repair.mp4",
-			Status:        "published",
-			Likes:         makeLikes(4),
-			PricePerUnit:  63240,
-			StagePosition: 3,
-		},
-		{
-			ID:            10,
-			Title:         "Утилизация",
-			Description:   "Демонтаж и сдача станка на утилизацию по окончании срока службы",
-			ImageKey:      "disposal.jpg",
-			VideoKey:      "disposal.mp4",
-			Status:        "published",
-			Likes:         makeLikes(3),
-			PricePerUnit:  110000,
-			StagePosition: 4,
-		},
-	}
-
-	if len(stages) == 0 {
-		return nil, fmt.Errorf("массив пустой")
-	}
-
-	return stages, nil
-}
-
-func makeLikes(n int) []int {
-	likes := make([]int, n)
-	for i := range likes {
-		likes[i] = 100 + i
-	}
-	return likes
-}
-
-func (r *Repository) GetLifecycleStage(id int) (LifecycleStage, error) {
-	stages, err := r.GetLifecycleStages()
-	if err != nil {
-		return LifecycleStage{}, err
-	}
-
-	for _, stage := range stages {
-		if stage.ID == id {
-			return stage, nil
-		}
-	}
-	return LifecycleStage{}, fmt.Errorf("этап не найден")
-}
-
-func (r *Repository) GetDraftLifecycleStage() (LifecycleStage, error) {
-	stages, err := r.GetLifecycleStages()
-	if err != nil {
-		return LifecycleStage{}, err
-	}
-
-	for _, stage := range stages {
-		if stage.Status == "draft" {
-			return stage, nil
-		}
-	}
-	return LifecycleStage{}, fmt.Errorf("черновик не найден")
-}
-
-func (r *Repository) GetPublishedLifecycleStages() ([]LifecycleStage, error) {
-	stages, err := r.GetLifecycleStages()
+func NewRepository(dsn string) (*Repository, error) {
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
-
-	var result []LifecycleStage
-	for _, stage := range stages {
-		if stage.Status == "published" {
-			result = append(result, stage)
-		}
-	}
-	return result, nil
+	return &Repository{db: db}, nil
 }
 
-func (r *Repository) GetLifecycleStagesByMaxPrice(maxPrice int) ([]LifecycleStage, error) {
-	stages, err := r.GetPublishedLifecycleStages()
-	if err != nil {
-		return []LifecycleStage{}, err
+func (r *Repository) GetPublishedStages(maxPrice int, hasMaxPrice bool) ([]ds.LifecycleStage, error) {
+	query := r.db.Where("status = ?", string(ds.StatusPublished))
+
+	if hasMaxPrice {
+		query = query.Where("price_per_unit <= ?", maxPrice)
 	}
 
-	var result []LifecycleStage
-	for _, stage := range stages {
-		if stage.PricePerUnit <= maxPrice {
-			result = append(result, stage)
-		}
-	}
-	return result, nil
+	var stages []ds.LifecycleStage
+	err := query.Order("stage_position ASC, id ASC").Find(&stages).Error
+	return stages, err
 }
 
-func (r *Repository) GetNextLifecycleStage(id int) (LifecycleStage, error) {
-	stages, err := r.GetPublishedLifecycleStages()
-	if err != nil {
-		return LifecycleStage{}, err
-	}
+func (r *Repository) GetStage(id uint) (ds.LifecycleStage, error) {
+	var stage ds.LifecycleStage
+	err := r.db.Where("id = ? AND status <> ?", id, string(ds.StatusDeleted)).First(&stage).Error
+	return stage, err
+}
 
-	for i, stage := range stages {
-		if stage.ID == id && i+1 < len(stages) {
+func (r *Repository) GetNextStage(id uint) (ds.LifecycleStage, error) {
+	stages, err := r.GetPublishedStages(0, false)
+	if err != nil {
+		return ds.LifecycleStage{}, err
+	}
+	for i, s := range stages {
+		if s.ID == id && i+1 < len(stages) {
 			return stages[i+1], nil
 		}
 	}
-	return LifecycleStage{}, fmt.Errorf("следующий этап не найден")
+	return ds.LifecycleStage{}, gorm.ErrRecordNotFound
+}
+
+func (r *Repository) GetDraftStage(engineerID uint) (ds.LifecycleStage, bool, error) {
+	var stage ds.LifecycleStage
+	err := r.db.Where("creator_id = ? AND status = ?", engineerID, string(ds.StatusDraft)).First(&stage).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return ds.LifecycleStage{}, false, nil
+		}
+		return ds.LifecycleStage{}, false, err
+	}
+	return stage, true, nil
+}
+
+func (r *Repository) CreateOrGetDraftStage(engineerID uint, title, imageURL, videoURL string) (ds.LifecycleStage, error) {
+	existing, found, err := r.GetDraftStage(engineerID)
+	if err != nil {
+		return ds.LifecycleStage{}, err
+	}
+	if found {
+		return existing, nil
+	}
+
+	stage := ds.LifecycleStage{
+		Title:     title,
+		Status:    ds.StatusDraft,
+		ImageURL:  imageURL,
+		VideoURL:  videoURL,
+		CreatedAt: time.Now(),
+		CreatorID: engineerID,
+	}
+	if err := r.db.Create(&stage).Error; err != nil {
+		return ds.LifecycleStage{}, err
+	}
+	return stage, nil
+}
+
+func (r *Repository) PublishStage(id uint, description string, pricePerUnit, stagePosition int) error {
+	now := time.Now()
+	return r.db.Model(&ds.LifecycleStage{}).
+		Where("id = ? AND status = ?", id, string(ds.StatusDraft)).
+		Updates(map[string]interface{}{
+			"description":    description,
+			"price_per_unit": pricePerUnit,
+			"stage_position": stagePosition,
+			"status":         string(ds.StatusPublished),
+			"formed_at":      now,
+		}).Error
+}
+
+func (r *Repository) GetLikesCount(stageID uint) (int64, error) {
+	var count int64
+	err := r.db.Model(&ds.StageLike{}).Where("stage_id = ?", stageID).Count(&count).Error
+	return count, err
+}
+
+func (r *Repository) DeleteStageRawSQL(id uint) error {
+	sqlDB, err := r.db.DB()
+	if err != nil {
+		return err
+	}
+
+	rows, err := sqlDB.Query(
+		`UPDATE lifecycle_stages SET status = $1 WHERE id = $2 AND status <> $1 RETURNING id`,
+		string(ds.StatusDeleted), id,
+	)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	updated := false
+	for rows.Next() {
+		updated = true
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if !updated {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
 }

@@ -34,7 +34,11 @@ html, body {
 }
 
 h2 { font-size: 13.5px; text-transform: uppercase; letter-spacing: .05em; margin: 32px 0 12px; color: rgba(255,255,255,.9); }
-h2:first-of-type { margin-top: 0; }
+/* Обнуляем верхний отступ только у самого первого заголовка блока явным
+   классом, а не через :first-of-type — оно пересчитывается для каждого
+   родителя и ошибочно применялось ещё и к "Краткое описание" внутри
+   вложенной формы публикации, из-за чего поле "Название" наезжало на него. */
+.draft-h2-tight { margin-top: 0; }
 
 .draft-media { display: flex; gap: 14px; }
 .draft-media-block {
@@ -91,6 +95,32 @@ h2:first-of-type { margin-top: 0; }
 .draft-params { display: flex; gap: 12px; margin-bottom: 8px; }
 .draft-params > div { flex: 1; }
 .draft-params span { display: block; font-size: 13.5px; color: rgba(255,255,255,.85); margin-bottom: 12px; }
+
+.draft-field:disabled { opacity: .6; }
+
+.draft-media-preview { padding: 8px; gap: 6px; }
+.draft-preview-image,
+.draft-preview-video {
+    width: 100%;
+    height: 74px;
+    object-fit: cover;
+    border-radius: 12px;
+    background: #060721;
+}
+
+.draft-submit-btn {
+    display: block;
+    width: 100%;
+    margin-top: 28px;
+    height: 52px;
+    border: none;
+    border-radius: 14px;
+    background: #baff42;
+    color: #060721;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+}
 
 .tabbar {
     height: 62px;

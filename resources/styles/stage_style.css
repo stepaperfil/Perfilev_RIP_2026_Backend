@@ -46,20 +46,12 @@ html, body {
 .feed-likes-icon { font-size: 18px; line-height: 1; }
 .feed-likes-count { font-size: 13px; font-weight: 700; }
 
-.feed-like-toggle-input { display: none; }
-.feed-likes-btn {
-    cursor: pointer;
+.feed-likes-static {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 6px;
 }
-.feed-likes-btn .icon-liked,
-.feed-likes-btn .count-liked { display: none; }
-.feed-like-toggle-input:checked ~ .feed-likes-btn .icon-unliked,
-.feed-like-toggle-input:checked ~ .feed-likes-btn .count-unliked { display: none; }
-.feed-like-toggle-input:checked ~ .feed-likes-btn .icon-liked,
-.feed-like-toggle-input:checked ~ .feed-likes-btn .count-liked { display: inline; }
 
 .feed-description-toggle-input { display: none; }
 .feed-description-text {
