@@ -21,6 +21,7 @@
 - **Go** + **Gin** — веб-фреймворк, роутинг
 - **html/template** — серверная шаблонизация
 - **MinIO** — хранение изображений и видео этапов
+- **PostgreSQL** + **GORM** — хранение данных
 
 ## Дизайн
 
@@ -39,4 +40,4 @@
 | № | Тема | Ветка |
 |---|---|---|
 | 1 | Дизайн, шаблонизация, MinIO | [`lab1-design-templating`](../../tree/lab1-design-templating) |
-
+| 2 | PostgreSQL, GORM, CRUD этапов | [`lab2-postgres-gorm`](../../tree/lab2-postgres-gorm) |
