@@ -1,0 +1,39 @@
+<html lang="ru">
+<head>
+    <title>Этапы жизненного цикла — TCO Tracker</title>
+    <link rel="stylesheet" href="/static/styles/tiles_style.css?v={{ assetVersion }}">
+</head>
+<div class="app">
+    <div class="content">
+        <h2>Этапы жизненного цикла</h2>
+        <form class="filter" action="/stages" method="GET">
+            <input type="number" name="maxPrice" placeholder="Фильтр по цене за единицу" value="{{ .maxPrice }}">
+            <button type="submit" aria-label="Применить фильтр">›</button>
+        </form>
+        <ul class="tiles">
+            {{ range .stages }}
+            <li class="tile">
+                <a href="/stages/{{ .Stage.ID }}">
+                    <img class="tile-image" src="{{ .ImageURL }}" alt="{{ .Stage.Title }}">
+                    <div class="tile-body">
+                        <span class="tile-title">{{ .Stage.Title }}</span>
+                        <div class="tile-meta">
+                            <div class="tile-price-block">
+                                <span class="tile-caption">цена за единицу</span>
+                                <span class="tile-price">{{ formatPrice .Stage.PricePerUnit }} ₽</span>
+                            </div>
+                            <span class="tile-likes">💚 {{ .LikesCount }}</span>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            {{ end }}
+        </ul>
+    </div>
+    <nav class="tabbar">
+        <a href="/stages/1">Лента</a>
+        <a href="/stages/draft">Добавление</a>
+        <a class="tabbar-active" href="/stages">Плитка<span class="tabbar-dot"></span></a>
+    </nav>
+</div>
+</html>

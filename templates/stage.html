@@ -1,0 +1,54 @@
+<html lang="ru">
+<head>
+    <title>{{ .stage.Title }} — Лента</title>
+    <link rel="stylesheet" href="/static/styles/stage_style.css?v={{ assetVersion }}">
+</head>
+<div class="app">
+    <div class="feed">
+        {{ if .videoURL }}
+        <video class="feed-media" src="{{ .videoURL }}" autoplay muted loop playsinline></video>
+        {{ else }}
+        <img class="feed-media" src="{{ .imageURL }}" alt="{{ .stage.Title }}">
+        {{ end }}
+        <div class="feed-overlay">
+            <div class="feed-likes">
+                <input type="checkbox" id="like-toggle" class="feed-like-toggle-input">
+                <label for="like-toggle" class="feed-likes-btn">
+                    <span class="feed-likes-icon icon-unliked">🤍</span>
+                    <span class="feed-likes-icon icon-liked">💚</span>
+                    <span class="feed-likes-count count-unliked">{{ .likesCount }}</span>
+                    <span class="feed-likes-count count-liked">{{ plus1 .likesCount }}</span>
+                </label>
+                <a class="feed-next" href="/stages/{{ .stage.ID }}?next=true" aria-label="Следующий этап">→</a>
+            </div>
+
+            <h1 class="feed-title">{{ .stage.Title }}</h1>
+
+            <div class="feed-params">
+                <div class="feed-param">
+                    <span class="feed-param-label">ЦЕНА ЗА ЕДИНИЦУ</span>
+                    <span class="feed-param-value">{{ formatPrice .stage.PricePerUnit }} ₽</span>
+                </div>
+                <div class="feed-param">
+                    <span class="feed-param-label">ПОРЯДКОВЫЙ НОМЕР</span>
+                    <span class="feed-param-value">{{ .stage.StagePosition }}</span>
+                </div>
+            </div>
+
+            <div class="feed-description">
+                <input type="checkbox" id="desc-toggle" class="feed-description-toggle-input">
+                <p class="feed-description-text">{{ .stage.Description }}</p>
+                <label for="desc-toggle" class="feed-description-toggle">
+                    <span class="label-more">Подробнее</span>
+                    <span class="label-less">Скрыть</span>
+                </label>
+            </div>
+        </div>
+    </div>
+    <nav class="tabbar">
+        <a class="tabbar-active" href="/stages/1">Лента<span class="tabbar-dot"></span></a>
+        <a href="/stages/draft">Добавление</a>
+        <a href="/stages">Плитка</a>
+    </nav>
+</div>
+</html>
