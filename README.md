@@ -4,7 +4,7 @@
 
 ## Что реализовано в этом спринте
 
-- Переход с хранения в памяти на **PostgreSQL** через **GORM**: три таблицы — `engineers`, `lifecycle_stages` (`Title`, `Description`, `Status`: `черновик`/`опубликован`/`удален`, `ImageURL`, `VideoURL`, `PricePerUnit`, `StagePosition`, `CreatedAt`, `FormedAt`, `CreatorID`) и `stage_likes` — связь многие ко многим между инженерами и этапами.
+- Переход с хранения в памяти на **PostgreSQL** через **GORM**: три таблицы — `engineers` (`FullName`, `Login`, `PasswordHash`), `life_cycle_stages` (`Title`, `Description`, `Status`: `черновик`/`опубликован`/`удален`, `ImageURL`, `VideoURL`, `PricePerUnit`, `StagePosition`, `CreatedAt`, `FormedAt`, `CreatorID`) и `life_cycle_stage_likes` — связь многие ко многим между инженерами и этапами.
 - Создание черновика и публикация этапа пишут данные в БД через ORM; название этапа обязательно для заполнения.
 - Логическое удаление этапа (статус → `удален`) реализовано прямым SQL-запросом `UPDATE`, в обход ORM.
 - Просмотр и редактирование данных через **Adminer**.
@@ -15,12 +15,12 @@
 
 | Метод | Путь | Описание |
 |---|---|---|
-| GET | `/stages` | Список опубликованных этапов; `?maxPrice=` — фильтр по цене за единицу |
-| GET | `/stages/:id` | Детальная карточка этапа; `?next=true` — следующий по порядку этап |
-| GET | `/stages/draft` | Черновик текущего инженера |
-| POST | `/stages` | Создание черновика (название обязательно) |
-| POST | `/stages/:id/publish` | Публикация черновика |
-| POST | `/stages/:id/delete` | Логическое удаление (статус → `удален`) прямым SQL-запросом `UPDATE`, минуя ORM |
+| GET | `/life_cycle_stages` | Список опубликованных этапов; `?maxPricePerUnit=` — фильтр по цене за единицу |
+| GET | `/life_cycle_stages/:id` | Детальная карточка этапа; `?next=true` — следующий по порядку этап |
+| GET | `/life_cycle_stages/draft` | Черновик текущего инженера |
+| POST | `/life_cycle_stages` | Создание черновика (название обязательно) |
+| POST | `/life_cycle_stages/:id/publish` | Публикация черновика |
+| POST | `/life_cycle_stages/:id/delete` | Логическое удаление (статус → `удален`) прямым SQL-запросом `UPDATE`, минуя ORM |
 
 ## Технологии
 

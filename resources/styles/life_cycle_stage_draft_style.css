@@ -1,29 +1,4 @@
-html, body {
-    margin: 0;
-    background: #14151f;
-    color: #ffffff;
-    font-family: 'Manrope', system-ui, sans-serif;
-    height: 100%;
-}
-
-.app {
-    width: 412px;
-    height: 917px;
-    margin: 0 auto;
-    background: #060721;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.content {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-    padding-bottom: 24px;
-}
-
-.draft { padding: 28px 18px 0; }
+.draft { padding: 28px 18px 24px; }
 .draft-status { display: flex; align-items: center; justify-content: space-between; margin-bottom: 34px; }
 .draft-status-label { text-transform: uppercase; font-weight: 700; font-size: 18px; letter-spacing: .02em; }
 .draft-badge {
@@ -40,29 +15,36 @@ h2 { font-size: 13.5px; text-transform: uppercase; letter-spacing: .05em; margin
    вложенной формы публикации, из-за чего поле "Название" наезжало на него. */
 .draft-h2-tight { margin-top: 0; }
 
-.draft-media { display: flex; gap: 14px; }
+.draft-media { display: flex; flex-direction: column; gap: 14px; }
 .draft-media-block {
-    flex: 1;
     background: #12143D;
     border-radius: 18px;
-    padding: 14px 10px;
+    padding: 14px 16px;
     text-align: center;
-    min-height: 130px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 10px;
 }
-.draft-media-placeholder {
-    width: 36px;
-    height: 36px;
-    color: rgba(255,255,255,.35);
-}
 .draft-media-block > span {
     display: block;
     font-size: 12.5px;
     color: rgba(255,255,255,.6);
+}
+
+.draft-media-picker {
+    min-height: 120px;
+    box-sizing: border-box;
+    border: 1px dashed rgba(255,255,255,.18);
+    cursor: pointer;
+}
+.draft-media-picker:hover { border-color: var(--color-accent); }
+.draft-media-input { display: none; }
+.draft-media-icon {
+    width: 36px;
+    height: 36px;
+    color: rgba(255,255,255,.4);
 }
 
 .draft-field {
@@ -79,13 +61,6 @@ h2 { font-size: 13.5px; text-transform: uppercase; letter-spacing: .05em; margin
     color: #ffffff;
     box-sizing: border-box;
 }
-.draft-field-media {
-    text-align: center;
-    padding: 10px;
-    font-size: 12.5px;
-    font-weight: 500;
-}
-.draft-field-media::placeholder { color: rgba(255,255,255,.4); }
 .draft-field-tall {
     min-height: 100px;
     resize: vertical;
@@ -96,50 +71,20 @@ h2 { font-size: 13.5px; text-transform: uppercase; letter-spacing: .05em; margin
 .draft-params > div { flex: 1; }
 .draft-params span { display: block; font-size: 13.5px; color: rgba(255,255,255,.85); margin-bottom: 12px; }
 
-.draft-field:disabled { opacity: .6; }
+.draft-title-display {
+    margin: 0;
+    font-weight: 600;
+    font-size: 15px;
+}
 
-.draft-media-preview { padding: 8px; gap: 6px; }
+.draft-media-preview { padding: 10px; gap: 8px; }
 .draft-preview-image,
 .draft-preview-video {
     width: 100%;
-    height: 74px;
+    height: 140px;
     object-fit: cover;
     border-radius: 12px;
     background: #060721;
 }
 
-.draft-submit-btn {
-    display: block;
-    width: 100%;
-    margin-top: 28px;
-    height: 52px;
-    border: none;
-    border-radius: 14px;
-    background: #baff42;
-    color: #060721;
-    font-weight: 800;
-    font-size: 15px;
-    cursor: pointer;
-}
-
-.tabbar {
-    height: 62px;
-    flex-shrink: 0;
-    background: #060721;
-    border-top: 1px solid rgba(255,255,255,.08);
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-}
-.tabbar a { position: relative; color: rgba(255,255,255,.55); text-decoration: none; font-weight: 700; font-size: 13px; padding-bottom: 4px; }
-.tabbar a.tabbar-active { color: #ffffff; }
-.tabbar-dot {
-    position: absolute;
-    left: 50%;
-    top: 21px;
-    transform: translateX(-50%);
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #baff42;
-}
+.draft-submit-btn { margin-top: 28px; }

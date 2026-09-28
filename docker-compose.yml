@@ -1,19 +1,6 @@
-version: "3.8"
+name: tco-db
 
 services:
-  minio:
-    image: minio/minio:latest
-    container_name: tco-minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio-data:/data
-
   postgres:
     image: postgres:16
     container_name: tco-postgres
@@ -37,5 +24,4 @@ services:
       - postgres
 
 volumes:
-  minio-data:
   postgres-data:

@@ -16,11 +16,11 @@ func main() {
 		log.Fatalf("не удалось подключиться к БД: %v", err)
 	}
 
-	if err := db.AutoMigrate(&ds.Engineer{}, &ds.LifecycleStage{}, &ds.StageLike{}); err != nil {
+	if err := db.AutoMigrate(&ds.Engineer{}, &ds.LifeCycleStage{}, &ds.LifeCycleStageLike{}); err != nil {
 		log.Fatalf("ошибка миграции: %v", err)
 	}
 
-	defaultEngineer := ds.Engineer{ID: 1, FullName: "Инженер по умолчанию"}
+	defaultEngineer := ds.Engineer{ID: 1, FullName: "Инженер по умолчанию", Login: "default.engineer", PasswordHash: "$2a$10$placeholderPlaceholderPlaceholderPlaceh"}
 	if err := db.FirstOrCreate(&defaultEngineer, ds.Engineer{ID: 1}).Error; err != nil {
 		log.Fatalf("не удалось создать инженера по умолчанию: %v", err)
 	}

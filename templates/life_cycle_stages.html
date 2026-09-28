@@ -1,0 +1,43 @@
+<html lang="ru">
+<head>
+    <title>Этапы жизненного цикла — TCO Tracker</title>
+    <link rel="stylesheet" href="/static/styles/common.css?v={{ assetVersion }}">
+    <link rel="stylesheet" href="/static/styles/life_cycle_stages_style.css?v={{ assetVersion }}">
+</head>
+<div class="app">
+    <div class="content">
+        <h2>Этапы жизненного цикла</h2>
+        <form class="filter" action="/life_cycle_stages" method="GET">
+            <input type="number" name="maxPricePerUnit" placeholder="Цена за единицу, ₽" value="{{ .maxPricePerUnit }}">
+            <button type="submit" class="btn btn-icon" aria-label="Применить фильтр">›</button>
+        </form>
+        <ul class="tiles">
+            {{ range .lifeCycleStages }}
+            <li class="tile">
+                <a href="/life_cycle_stages/{{ .LifeCycleStage.ID }}">
+                    <img class="tile-image" src="{{ .ImageURL }}" alt="{{ .LifeCycleStage.Title }}">
+                    <div class="tile-body">
+                        <span class="tile-title">{{ .LifeCycleStage.Title }}</span>
+                        <div class="tile-meta">
+                            <div class="tile-price-block">
+                                <span class="tile-caption">цена за единицу</span>
+                                <span class="tile-price">{{ formatPrice .LifeCycleStage.PricePerUnit }} ₽</span>
+                            </div>
+                            <span class="tile-likes">💚 {{ .LikesCount }}</span>
+                        </div>
+                    </div>
+                </a>
+                <form class="tile-delete" action="/life_cycle_stages/{{ .LifeCycleStage.ID }}/delete" method="POST">
+                    <button type="submit" class="btn btn-block btn-sm">Удалить</button>
+                </form>
+            </li>
+            {{ end }}
+        </ul>
+    </div>
+    <nav class="tabbar">
+        <a href="/life_cycle_stages/1">Лента</a>
+        <a href="/life_cycle_stages/draft">Добавление</a>
+        <a class="tabbar-active" href="/life_cycle_stages">Плитка<span class="tabbar-dot"></span></a>
+    </nav>
+</div>
+</html>

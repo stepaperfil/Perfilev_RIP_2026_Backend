@@ -22,59 +22,59 @@ func NewRepository(dsn string) (*Repository, error) {
 	return &Repository{db: db}, nil
 }
 
-func (r *Repository) GetPublishedStages(maxPrice int, hasMaxPrice bool) ([]ds.LifecycleStage, error) {
+func (r *Repository) GetPublishedLifeCycleStages(maxPricePerUnit int, hasMaxPricePerUnit bool) ([]ds.LifeCycleStage, error) {
 	query := r.db.Where("status = ?", string(ds.StatusPublished))
 
-	if hasMaxPrice {
-		query = query.Where("price_per_unit <= ?", maxPrice)
+	if hasMaxPricePerUnit {
+		query = query.Where("price_per_unit <= ?", maxPricePerUnit)
 	}
 
-	var stages []ds.LifecycleStage
-	err := query.Order("stage_position ASC, id ASC").Find(&stages).Error
-	return stages, err
+	var lifeCycleStages []ds.LifeCycleStage
+	err := query.Order("stage_position ASC, id ASC").Find(&lifeCycleStages).Error
+	return lifeCycleStages, err
 }
 
-func (r *Repository) GetStage(id uint) (ds.LifecycleStage, error) {
-	var stage ds.LifecycleStage
-	err := r.db.Where("id = ? AND status <> ?", id, string(ds.StatusDeleted)).First(&stage).Error
-	return stage, err
+func (r *Repository) GetLifeCycleStage(id uint) (ds.LifeCycleStage, error) {
+	var lifeCycleStage ds.LifeCycleStage
+	err := r.db.Where("id = ? AND status <> ?", id, string(ds.StatusDeleted)).First(&lifeCycleStage).Error
+	return lifeCycleStage, err
 }
 
-func (r *Repository) GetNextStage(id uint) (ds.LifecycleStage, error) {
-	stages, err := r.GetPublishedStages(0, false)
+func (r *Repository) GetNextLifeCycleStage(id uint) (ds.LifeCycleStage, error) {
+	lifeCycleStages, err := r.GetPublishedLifeCycleStages(0, false)
 	if err != nil {
-		return ds.LifecycleStage{}, err
+		return ds.LifeCycleStage{}, err
 	}
-	for i, s := range stages {
-		if s.ID == id && i+1 < len(stages) {
-			return stages[i+1], nil
+	for i, s := range lifeCycleStages {
+		if s.ID == id && i+1 < len(lifeCycleStages) {
+			return lifeCycleStages[i+1], nil
 		}
 	}
-	return ds.LifecycleStage{}, gorm.ErrRecordNotFound
+	return ds.LifeCycleStage{}, gorm.ErrRecordNotFound
 }
 
-func (r *Repository) GetDraftStage(engineerID uint) (ds.LifecycleStage, bool, error) {
-	var stage ds.LifecycleStage
-	err := r.db.Where("creator_id = ? AND status = ?", engineerID, string(ds.StatusDraft)).First(&stage).Error
+func (r *Repository) GetDraftLifeCycleStage(engineerID uint) (ds.LifeCycleStage, bool, error) {
+	var lifeCycleStage ds.LifeCycleStage
+	err := r.db.Where("creator_id = ? AND status = ?", engineerID, string(ds.StatusDraft)).First(&lifeCycleStage).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return ds.LifecycleStage{}, false, nil
+			return ds.LifeCycleStage{}, false, nil
 		}
-		return ds.LifecycleStage{}, false, err
+		return ds.LifeCycleStage{}, false, err
 	}
-	return stage, true, nil
+	return lifeCycleStage, true, nil
 }
 
-func (r *Repository) CreateOrGetDraftStage(engineerID uint, title, imageURL, videoURL string) (ds.LifecycleStage, error) {
-	existing, found, err := r.GetDraftStage(engineerID)
+func (r *Repository) CreateOrGetDraftLifeCycleStage(engineerID uint, title, imageURL, videoURL string) (ds.LifeCycleStage, error) {
+	existing, found, err := r.GetDraftLifeCycleStage(engineerID)
 	if err != nil {
-		return ds.LifecycleStage{}, err
+		return ds.LifeCycleStage{}, err
 	}
 	if found {
 		return existing, nil
 	}
 
-	stage := ds.LifecycleStage{
+	lifeCycleStage := ds.LifeCycleStage{
 		Title:     title,
 		Status:    ds.StatusDraft,
 		ImageURL:  imageURL,
@@ -82,15 +82,15 @@ func (r *Repository) CreateOrGetDraftStage(engineerID uint, title, imageURL, vid
 		CreatedAt: time.Now(),
 		CreatorID: engineerID,
 	}
-	if err := r.db.Create(&stage).Error; err != nil {
-		return ds.LifecycleStage{}, err
+	if err := r.db.Create(&lifeCycleStage).Error; err != nil {
+		return ds.LifeCycleStage{}, err
 	}
-	return stage, nil
+	return lifeCycleStage, nil
 }
 
-func (r *Repository) PublishStage(id uint, description string, pricePerUnit, stagePosition int) error {
+func (r *Repository) PublishLifeCycleStage(id uint, description string, pricePerUnit, stagePosition int) error {
 	now := time.Now()
-	return r.db.Model(&ds.LifecycleStage{}).
+	return r.db.Model(&ds.LifeCycleStage{}).
 		Where("id = ? AND status = ?", id, string(ds.StatusDraft)).
 		Updates(map[string]interface{}{
 			"description":    description,
@@ -101,20 +101,20 @@ func (r *Repository) PublishStage(id uint, description string, pricePerUnit, sta
 		}).Error
 }
 
-func (r *Repository) GetLikesCount(stageID uint) (int64, error) {
+func (r *Repository) GetLifeCycleStageLikesCount(lifeCycleStageID uint) (int64, error) {
 	var count int64
-	err := r.db.Model(&ds.StageLike{}).Where("stage_id = ?", stageID).Count(&count).Error
+	err := r.db.Model(&ds.LifeCycleStageLike{}).Where("life_cycle_stage_id = ?", lifeCycleStageID).Count(&count).Error
 	return count, err
 }
 
-func (r *Repository) DeleteStageRawSQL(id uint) error {
+func (r *Repository) DeleteLifeCycleStageRawSQL(id uint) error {
 	sqlDB, err := r.db.DB()
 	if err != nil {
 		return err
 	}
 
 	rows, err := sqlDB.Query(
-		`UPDATE lifecycle_stages SET status = $1 WHERE id = $2 AND status <> $1 RETURNING id`,
+		`UPDATE life_cycle_stages SET status = $1 WHERE id = $2 AND status <> $1 RETURNING id`,
 		string(ds.StatusDeleted), id,
 	)
 	if err != nil {

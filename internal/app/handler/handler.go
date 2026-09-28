@@ -14,8 +14,8 @@ import (
 const currentEngineerID uint = 1
 
 const (
-	defaultImageURL = "/static/img/default-stage.jpg"
-	defaultVideoURL = "/static/video/default-stage.mp4"
+	defaultImageURL = "/static/img/default-life-cycle-stage.jpg"
+	defaultVideoURL = "/static/video/default-life-cycle-stage.mp4"
 )
 
 func withDefaults(imageURL, videoURL string) (string, string) {
@@ -38,54 +38,54 @@ func NewHandler(r *repository.Repository) *Handler {
 	}
 }
 
-type tileView struct {
-	Stage      ds.LifecycleStage
-	ImageURL   string
-	LikesCount int64
+type lifeCycleStageTileView struct {
+	LifeCycleStage ds.LifeCycleStage
+	ImageURL       string
+	LikesCount     int64
 }
 
-func (h *Handler) GetLifecycleStages(ctx *gin.Context) {
-	maxPriceQuery := ctx.Query("maxPrice")
-	hasMaxPrice := false
-	maxPrice := 0
-	if maxPriceQuery != "" {
-		v, err := strconv.Atoi(maxPriceQuery)
+func (h *Handler) GetLifeCycleStages(ctx *gin.Context) {
+	maxPricePerUnitQuery := ctx.Query("maxPricePerUnit")
+	hasMaxPricePerUnit := false
+	maxPricePerUnit := 0
+	if maxPricePerUnitQuery != "" {
+		v, err := strconv.Atoi(maxPricePerUnitQuery)
 		if err != nil {
 			logrus.Error(err)
 		} else {
-			maxPrice = v
-			hasMaxPrice = true
+			maxPricePerUnit = v
+			hasMaxPricePerUnit = true
 		}
 	}
 
-	stages, err := h.Repository.GetPublishedStages(maxPrice, hasMaxPrice)
+	lifeCycleStages, err := h.Repository.GetPublishedLifeCycleStages(maxPricePerUnit, hasMaxPricePerUnit)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	views := make([]tileView, 0, len(stages))
-	for _, stage := range stages {
-		imageURL, _ := withDefaults(stage.ImageURL, stage.VideoURL)
+	views := make([]lifeCycleStageTileView, 0, len(lifeCycleStages))
+	for _, lifeCycleStage := range lifeCycleStages {
+		imageURL, _ := withDefaults(lifeCycleStage.ImageURL, lifeCycleStage.VideoURL)
 
-		likes, err := h.Repository.GetLikesCount(stage.ID)
+		likes, err := h.Repository.GetLifeCycleStageLikesCount(lifeCycleStage.ID)
 		if err != nil {
 			logrus.Error(err)
 		}
 
-		views = append(views, tileView{
-			Stage:      stage,
-			ImageURL:   imageURL,
-			LikesCount: likes,
+		views = append(views, lifeCycleStageTileView{
+			LifeCycleStage: lifeCycleStage,
+			ImageURL:       imageURL,
+			LikesCount:     likes,
 		})
 	}
 
-	ctx.HTML(http.StatusOK, "tiles.html", gin.H{
-		"stages":   views,
-		"maxPrice": maxPriceQuery,
+	ctx.HTML(http.StatusOK, "life_cycle_stages.html", gin.H{
+		"lifeCycleStages": views,
+		"maxPricePerUnit": maxPricePerUnitQuery,
 	})
 }
 
-func (h *Handler) GetLifecycleStage(ctx *gin.Context) {
+func (h *Handler) GetLifeCycleStage(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id64, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
@@ -95,11 +95,11 @@ func (h *Handler) GetLifecycleStage(ctx *gin.Context) {
 	}
 	id := uint(id64)
 
-	var stage ds.LifecycleStage
+	var lifeCycleStage ds.LifeCycleStage
 	if ctx.Query("next") == "true" {
-		stage, err = h.Repository.GetNextStage(id)
+		lifeCycleStage, err = h.Repository.GetNextLifeCycleStage(id)
 	} else {
-		stage, err = h.Repository.GetStage(id)
+		lifeCycleStage, err = h.Repository.GetLifeCycleStage(id)
 	}
 	if err != nil {
 		logrus.Error(err)
@@ -107,52 +107,52 @@ func (h *Handler) GetLifecycleStage(ctx *gin.Context) {
 		return
 	}
 
-	likes, err := h.Repository.GetLikesCount(stage.ID)
+	likes, err := h.Repository.GetLifeCycleStageLikesCount(lifeCycleStage.ID)
 	if err != nil {
 		logrus.Error(err)
 	}
 
-	imageURL, videoURL := withDefaults(stage.ImageURL, stage.VideoURL)
+	imageURL, videoURL := withDefaults(lifeCycleStage.ImageURL, lifeCycleStage.VideoURL)
 
-	ctx.HTML(http.StatusOK, "stage.html", gin.H{
-		"stage":      stage,
-		"imageURL":   imageURL,
-		"videoURL":   videoURL,
-		"likesCount": likes,
+	ctx.HTML(http.StatusOK, "life_cycle_stage.html", gin.H{
+		"lifeCycleStage": lifeCycleStage,
+		"imageURL":       imageURL,
+		"videoURL":       videoURL,
+		"likesCount":     likes,
 	})
 }
 
-func (h *Handler) GetDraftLifecycleStage(ctx *gin.Context) {
-	stage, found, err := h.Repository.GetDraftStage(currentEngineerID)
+func (h *Handler) GetDraftLifeCycleStage(ctx *gin.Context) {
+	lifeCycleStage, found, err := h.Repository.GetDraftLifeCycleStage(currentEngineerID)
 	if err != nil {
 		logrus.Error(err)
 		ctx.String(http.StatusInternalServerError, "ошибка получения черновика")
 		return
 	}
 
-	imageURL, videoURL := withDefaults(stage.ImageURL, stage.VideoURL)
+	imageURL, videoURL := withDefaults(lifeCycleStage.ImageURL, lifeCycleStage.VideoURL)
 
-	ctx.HTML(http.StatusOK, "draft.html", gin.H{
-		"stage":    stage,
-		"found":    found,
-		"imageURL": imageURL,
-		"videoURL": videoURL,
+	ctx.HTML(http.StatusOK, "life_cycle_stage_draft.html", gin.H{
+		"lifeCycleStage": lifeCycleStage,
+		"found":          found,
+		"imageURL":       imageURL,
+		"videoURL":       videoURL,
 	})
 }
 
-func (h *Handler) CreateDraftLifecycleStage(ctx *gin.Context) {
+func (h *Handler) CreateDraftLifeCycleStage(ctx *gin.Context) {
 	title := ctx.PostForm("title")
 
-	if _, err := h.Repository.CreateOrGetDraftStage(currentEngineerID, title, "", ""); err != nil {
+	if _, err := h.Repository.CreateOrGetDraftLifeCycleStage(currentEngineerID, title, "", ""); err != nil {
 		logrus.Error(err)
 		ctx.String(http.StatusInternalServerError, "не удалось создать черновик")
 		return
 	}
 
-	ctx.Redirect(http.StatusFound, "/stages/draft")
+	ctx.Redirect(http.StatusFound, "/life_cycle_stages/draft")
 }
 
-func (h *Handler) PublishLifecycleStage(ctx *gin.Context) {
+func (h *Handler) PublishLifeCycleStage(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id64, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
@@ -177,16 +177,16 @@ func (h *Handler) PublishLifecycleStage(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.Repository.PublishStage(uint(id64), description, pricePerUnit, stagePosition); err != nil {
+	if err := h.Repository.PublishLifeCycleStage(uint(id64), description, pricePerUnit, stagePosition); err != nil {
 		logrus.Error(err)
 		ctx.String(http.StatusInternalServerError, "не удалось опубликовать этап")
 		return
 	}
 
-	ctx.Redirect(http.StatusFound, "/stages")
+	ctx.Redirect(http.StatusFound, "/life_cycle_stages")
 }
 
-func (h *Handler) DeleteLifecycleStage(ctx *gin.Context) {
+func (h *Handler) DeleteLifeCycleStage(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id64, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
@@ -195,11 +195,11 @@ func (h *Handler) DeleteLifecycleStage(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.Repository.DeleteStageRawSQL(uint(id64)); err != nil {
+	if err := h.Repository.DeleteLifeCycleStageRawSQL(uint(id64)); err != nil {
 		logrus.Error(err)
 		ctx.String(http.StatusInternalServerError, "не удалось удалить этап")
 		return
 	}
 
-	ctx.Redirect(http.StatusFound, "/stages")
+	ctx.Redirect(http.StatusFound, "/life_cycle_stages")
 }
