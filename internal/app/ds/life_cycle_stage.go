@@ -15,8 +15,8 @@ type LifeCycleStage struct {
 	Title         string               `gorm:"column:title;type:varchar(150);not null"`
 	Description   string               `gorm:"column:description;type:text"`
 	Status        LifeCycleStageStatus `gorm:"column:status;type:varchar(20);not null"`
-	ImageURL      string               `gorm:"column:image_url;type:varchar(255)"`
-	VideoURL      string               `gorm:"column:video_url;type:varchar(255)"`
+	ImageKey      string               `gorm:"column:image_key;type:varchar(255)"`
+	VideoKey      string               `gorm:"column:video_key;type:varchar(255)"`
 	PricePerUnit  int                  `gorm:"column:price_per_unit;not null;default:0"`
 	StagePosition int                  `gorm:"column:stage_position;not null;default:0"`
 	CreatedAt     time.Time            `gorm:"column:created_at;not null"`
@@ -28,4 +28,10 @@ type LifeCycleStage struct {
 
 func (LifeCycleStage) TableName() string {
 	return "life_cycle_stages"
+}
+
+type LifeCycleStageWithStats struct {
+	LifeCycleStage
+	LikesCount int64
+	IsLiked    bool
 }

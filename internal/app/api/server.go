@@ -1,47 +1,25 @@
 package api
 
 import (
-	"html/template"
 	"log"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"tco-backend/internal/app/dsn"
 	"tco-backend/internal/app/handler"
 	"tco-backend/internal/app/repository"
+	"tco-backend/internal/app/storage"
 )
-
-var assetVersion = strconv.FormatInt(time.Now().Unix(), 10)
-
-func formatPrice(n int) string {
-	neg := n < 0
-	if neg {
-		n = -n
-	}
-	s := strconv.Itoa(n)
-
-	var groups []string
-	for len(s) > 3 {
-		groups = append([]string{s[len(s)-3:]}, groups...)
-		s = s[:len(s)-3]
-	}
-	groups = append([]string{s}, groups...)
-
-	result := strings.Join(groups, " ")
-	if neg {
-		result = "-" + result
-	}
-	return result
-}
 
 func StartServer() {
 	log.Println("Starting server")
 
-	repo, err := repository.NewRepository(dsn.FromEnv())
+	minioClient, err := storage.NewClient()
+	if err != nil {
+		log.Fatalf("ошибка подключения к MinIO: %v", err)
+	}
+
+	repo, err := repository.NewRepository(dsn.FromEnv(), minioClient, storage.Bucket())
 	if err != nil {
 		log.Fatalf("ошибка подключения к БД: %v", err)
 	}
@@ -49,26 +27,24 @@ func StartServer() {
 	h := handler.NewHandler(repo)
 
 	r := gin.Default()
-	r.SetFuncMap(template.FuncMap{
-		"formatPrice":  formatPrice,
-		"assetVersion": func() string { return assetVersion },
-	})
-	r.LoadHTMLGlob("templates/*")
-	r.Static("/static", "./resources")
 
-	r.GET("/", func(ctx *gin.Context) {
-		ctx.Redirect(http.StatusFound, "/life_cycle_stages")
-	})
+	api := r.Group("/api")
+	{
+		api.GET("/life_cycle_stages", h.GetLifeCycleStages)
+		api.GET("/life_cycle_stages/feed", h.GetLifeCycleStageFeed)
+		api.GET("/life_cycle_stages/feed/:id", h.GetLifeCycleStageFeed)
+		api.GET("/life_cycle_stages/draft", h.GetDraftLifeCycleStage)
+		api.POST("/life_cycle_stages", h.CreateLifeCycleStage)
+		api.PUT("/life_cycle_stages/:id/publish", h.PublishLifeCycleStage)
+		api.DELETE("/life_cycle_stages/:id", h.DeleteLifeCycleStage)
+		api.POST("/life_cycle_stages/:id/like", h.LikeLifeCycleStage)
 
-	r.GET("/life_cycle_stages", h.GetLifeCycleStages)
-	r.GET("/life_cycle_stages/draft", h.GetDraftLifeCycleStage)
-	r.GET("/life_cycle_stages/:id", h.GetLifeCycleStage)
+		api.POST("/engineers", h.RegisterEngineer)
+		api.POST("/engineers/login", h.LoginEngineer)
+		api.POST("/engineers/logout", h.LogoutEngineer)
+	}
 
-	r.POST("/life_cycle_stages", h.CreateDraftLifeCycleStage)
-	r.POST("/life_cycle_stages/:id/publish", h.PublishLifeCycleStage)
-
-	r.POST("/life_cycle_stages/:id/delete", h.DeleteLifeCycleStage)
-
-	r.Run()
-	log.Println("Server down")
+	if err := r.Run(); err != nil {
+		log.Fatalf("не удалось запустить сервер: %v", err)
+	}
 }
