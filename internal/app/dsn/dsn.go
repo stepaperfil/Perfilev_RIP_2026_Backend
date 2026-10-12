@@ -10,7 +10,7 @@ func FromEnv() string {
 	port := getEnv("POSTGRES_PORT", "5432")
 	user := getEnv("POSTGRES_USER", "tco")
 	password := getEnv("POSTGRES_PASSWORD", "tco")
-	dbname := getEnv("POSTGRES_DB", "tco_lab3")
+	dbname := getEnv("POSTGRES_DB", "tco_lab4")
 
 	return fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",

@@ -13,6 +13,12 @@ type LoginEngineerRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
+type LoginEngineerResponse struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	ExpiresIn   int64  `json:"expires_in"`
+}
+
 type Engineer struct {
 	ID       uint   `json:"id"`
 	FullName string `json:"full_name"`

@@ -4,37 +4,27 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	"tco-backend/internal/app/config"
+	"tco-backend/internal/app/redis"
 	"tco-backend/internal/app/repository"
 )
 
-const defaultEngineerID uint = 1
-
-var (
-	currentEngineerOnce sync.Once
-	currentEngineerID   uint
-)
-
-// До авторизации (ЛР4) создатель зафиксирован: singleton всегда возвращает одного и того же инженера.
-func CurrentEngineerID() uint {
-	currentEngineerOnce.Do(func() {
-		currentEngineerID = defaultEngineerID
-	})
-	return currentEngineerID
-}
-
 type Handler struct {
 	Repository *repository.Repository
+	Redis      *redis.Client
+	Config     *config.Config
 }
 
-func NewHandler(r *repository.Repository) *Handler {
+func NewHandler(r *repository.Repository, redisClient *redis.Client, cfg *config.Config) *Handler {
 	return &Handler{
 		Repository: r,
+		Redis:      redisClient,
+		Config:     cfg,
 	}
 }
 

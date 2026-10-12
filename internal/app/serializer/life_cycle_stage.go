@@ -34,6 +34,7 @@ type LifeCycleStage struct {
 	VideoURL      string `json:"video_url"`
 	PricePerUnit  *int   `json:"price_per_unit"`
 	StagePosition *int   `json:"stage_position"`
+	CreatorID     uint   `json:"creator_id"`
 }
 
 type LikeLifeCycleStageRequest struct {
@@ -91,5 +92,6 @@ func NewLifeCycleStage(s ds.LifeCycleStage) LifeCycleStage {
 		VideoURL:      storage.ObjectURL(s.VideoKey),
 		PricePerUnit:  s.PricePerUnit,
 		StagePosition: s.StagePosition,
+		CreatorID:     s.CreatorID,
 	}
 }

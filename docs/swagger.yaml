@@ -1,0 +1,408 @@
+basePath: /
+definitions:
+  serializer.Engineer:
+    properties:
+      full_name:
+        type: string
+      id:
+        type: integer
+      login:
+        type: string
+    type: object
+  serializer.LifeCycleStage:
+    properties:
+      creator_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      price_per_unit:
+        type: integer
+      stage_position:
+        type: integer
+      title:
+        type: string
+      video_url:
+        type: string
+    type: object
+  serializer.LifeCycleStageFeedItem:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      image_url:
+        type: string
+      is_liked:
+        type: integer
+      likes_count:
+        type: integer
+      price_per_unit:
+        type: integer
+      stage_position:
+        type: integer
+      title:
+        type: string
+      video_url:
+        type: string
+    type: object
+  serializer.LifeCycleStageListItem:
+    properties:
+      id:
+        type: integer
+      image_url:
+        type: string
+      is_mine:
+        type: integer
+      likes_count:
+        type: integer
+      price_per_unit:
+        type: integer
+      title:
+        type: string
+    type: object
+  serializer.LikeLifeCycleStageRequest:
+    properties:
+      like:
+        enum:
+        - 0
+        - 1
+        type: integer
+    required:
+    - like
+    type: object
+  serializer.LoginEngineerRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    required:
+    - login
+    - password
+    type: object
+  serializer.LoginEngineerResponse:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      token_type:
+        type: string
+    type: object
+  serializer.PublishLifeCycleStageRequest:
+    properties:
+      description:
+        type: string
+      price_per_unit:
+        minimum: 0
+        type: integer
+      stage_position:
+        minimum: 1
+        type: integer
+    required:
+    - description
+    - price_per_unit
+    - stage_position
+    type: object
+  serializer.RegisterEngineerRequest:
+    properties:
+      full_name:
+        maxLength: 150
+        type: string
+      login:
+        maxLength: 100
+        minLength: 3
+        type: string
+      password:
+        maxLength: 72
+        minLength: 6
+        type: string
+    required:
+    - full_name
+    - login
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 'Веб-сервис расчёта стоимости владения активом: этапы жизненного цикла
+    и пользователи.'
+  title: TCO API
+  version: "1.0"
+paths:
+  /api/engineers:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.RegisterEngineerRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/serializer.Engineer'
+        "400":
+          description: Bad Request
+        "409":
+          description: Conflict
+      summary: Регистрация пользователя
+      tags:
+      - engineers
+  /api/engineers/login:
+    post:
+      consumes:
+      - application/json
+      description: 'Проверяет логин и пароль и возвращает JWT для заголовка Authorization:
+        Bearer <token>.'
+      parameters:
+      - description: Логин и пароль
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.LoginEngineerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.LoginEngineerResponse'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+      summary: Аутентификация
+      tags:
+      - engineers
+  /api/engineers/logout:
+    post:
+      description: Добавляет текущий JWT в блеклист Redis до окончания срока его действия.
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+      security:
+      - BearerAuth: []
+      summary: Деавторизация
+      tags:
+      - engineers
+  /api/life_cycle_stages:
+    get:
+      description: Опубликованные этапы с фильтром по цене за единицу. Доступно гостю.
+      parameters:
+      - description: Максимальная цена за единицу
+        in: query
+        name: max_price_per_unit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/serializer.LifeCycleStageListItem'
+            type: array
+        "400":
+          description: Bad Request
+      summary: Список этапов жизненного цикла
+      tags:
+      - life_cycle_stages
+    post:
+      consumes:
+      - multipart/form-data
+      description: Создаёт черновик этапа текущего пользователя, фото и видео загружаются
+        в MinIO.
+      parameters:
+      - description: Название
+        in: formData
+        name: title
+        required: true
+        type: string
+      - description: Изображение
+        in: formData
+        name: image
+        required: true
+        type: file
+      - description: Видео
+        in: formData
+        name: video
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/serializer.LifeCycleStage'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "409":
+          description: Conflict
+      security:
+      - BearerAuth: []
+      summary: Добавление этапа
+      tags:
+      - life_cycle_stages
+  /api/life_cycle_stages/{id}:
+    delete:
+      description: Логическое удаление этапа текущего пользователя.
+      parameters:
+      - description: ID этапа
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+      security:
+      - BearerAuth: []
+      summary: Удаление этапа
+      tags:
+      - life_cycle_stages
+  /api/life_cycle_stages/{id}/like:
+    post:
+      consumes:
+      - application/json
+      description: like = 1 ставит лайк текущего пользователя, like = 0 снимает его.
+      parameters:
+      - description: ID этапа
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Лайк
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.LikeLifeCycleStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.LifeCycleStageFeedItem'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+      security:
+      - BearerAuth: []
+      summary: Лайк этапа
+      tags:
+      - life_cycle_stages
+  /api/life_cycle_stages/{id}/publish:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID этапа
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные публикации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/serializer.PublishLifeCycleStageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.LifeCycleStage'
+        "400":
+          description: Bad Request
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+      security:
+      - BearerAuth: []
+      summary: Публикация черновика этапа
+      tags:
+      - life_cycle_stages
+  /api/life_cycle_stages/draft:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.LifeCycleStage'
+        "401":
+          description: Unauthorized
+        "404":
+          description: Not Found
+      security:
+      - BearerAuth: []
+      summary: Черновик текущего пользователя
+      tags:
+      - life_cycle_stages
+  /api/life_cycle_stages/feed:
+    get:
+      description: Без id - первый этап ленты, с id - этот этап, с id и next=true
+        - следующий за ним. Доступно гостю.
+      parameters:
+      - description: ID этапа
+        in: query
+        name: id
+        type: integer
+      - description: true - следующий этап
+        in: query
+        name: next
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/serializer.LifeCycleStageFeedItem'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+      summary: Лента этапов
+      tags:
+      - life_cycle_stages
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    description: Введите "Bearer <токен из /api/engineers/login>"
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

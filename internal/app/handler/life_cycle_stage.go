@@ -15,6 +15,15 @@ import (
 	"tco-backend/internal/app/serializer"
 )
 
+// GetLifeCycleStages godoc
+// @Summary      Список этапов жизненного цикла
+// @Description  Опубликованные этапы с фильтром по цене за единицу. Доступно гостю.
+// @Tags         life_cycle_stages
+// @Produce      json
+// @Param        max_price_per_unit  query  int  false  "Максимальная цена за единицу"
+// @Success      200  {array}  serializer.LifeCycleStageListItem
+// @Failure      400
+// @Router       /api/life_cycle_stages [get]
 func (h *Handler) GetLifeCycleStages(ctx *gin.Context) {
 	var maxPricePerUnit *int
 	if q := ctx.Query("max_price_per_unit"); q != "" {
@@ -26,7 +35,7 @@ func (h *Handler) GetLifeCycleStages(ctx *gin.Context) {
 		maxPricePerUnit = &v
 	}
 
-	engineerID := CurrentEngineerID()
+	engineerID := currentEngineerID(ctx)
 	lifeCycleStages, err := h.Repository.GetPublishedLifeCycleStages(engineerID, maxPricePerUnit)
 	if err != nil {
 		h.errorHandler(ctx, http.StatusInternalServerError, err)
@@ -36,8 +45,19 @@ func (h *Handler) GetLifeCycleStages(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.NewLifeCycleStageList(lifeCycleStages, engineerID))
 }
 
+// GetLifeCycleStageFeed godoc
+// @Summary      Лента этапов
+// @Description  Без id - первый этап ленты, с id - этот этап, с id и next=true - следующий за ним. Доступно гостю.
+// @Tags         life_cycle_stages
+// @Produce      json
+// @Param        id    query  int     false  "ID этапа"
+// @Param        next  query  string  false  "true - следующий этап"
+// @Success      200  {object}  serializer.LifeCycleStageFeedItem
+// @Failure      400
+// @Failure      404
+// @Router       /api/life_cycle_stages/feed [get]
 func (h *Handler) GetLifeCycleStageFeed(ctx *gin.Context) {
-	engineerID := CurrentEngineerID()
+	engineerID := currentEngineerID(ctx)
 
 	var lifeCycleStage ds.LifeCycleStageWithStats
 	var err error
@@ -64,8 +84,17 @@ func (h *Handler) GetLifeCycleStageFeed(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.NewLifeCycleStageFeedItem(lifeCycleStage))
 }
 
+// GetDraftLifeCycleStage godoc
+// @Summary      Черновик текущего пользователя
+// @Tags         life_cycle_stages
+// @Produce      json
+// @Security     BearerAuth
+// @Success      200  {object}  serializer.LifeCycleStage
+// @Failure      401
+// @Failure      404
+// @Router       /api/life_cycle_stages/draft [get]
 func (h *Handler) GetDraftLifeCycleStage(ctx *gin.Context) {
-	lifeCycleStage, err := h.Repository.GetDraftLifeCycleStage(CurrentEngineerID())
+	lifeCycleStage, err := h.Repository.GetDraftLifeCycleStage(currentEngineerID(ctx))
 	if err != nil {
 		h.repositoryError(ctx, err)
 		return
@@ -74,8 +103,23 @@ func (h *Handler) GetDraftLifeCycleStage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.NewLifeCycleStage(lifeCycleStage))
 }
 
+// CreateLifeCycleStage godoc
+// @Summary      Добавление этапа
+// @Description  Создаёт черновик этапа текущего пользователя, фото и видео загружаются в MinIO.
+// @Tags         life_cycle_stages
+// @Accept       multipart/form-data
+// @Produce      json
+// @Security     BearerAuth
+// @Param        title  formData  string  true  "Название"
+// @Param        image  formData  file    true  "Изображение"
+// @Param        video  formData  file    true  "Видео"
+// @Success      201  {object}  serializer.LifeCycleStage
+// @Failure      400
+// @Failure      401
+// @Failure      409
+// @Router       /api/life_cycle_stages [post]
 func (h *Handler) CreateLifeCycleStage(ctx *gin.Context) {
-	engineerID := CurrentEngineerID()
+	engineerID := currentEngineerID(ctx)
 
 	_, err := h.Repository.GetDraftLifeCycleStage(engineerID)
 	if err == nil {
@@ -165,6 +209,20 @@ func (h *Handler) removeFiles(ctx *gin.Context, keys ...string) {
 	}
 }
 
+// LikeLifeCycleStage godoc
+// @Summary      Лайк этапа
+// @Description  like = 1 ставит лайк текущего пользователя, like = 0 снимает его.
+// @Tags         life_cycle_stages
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path  int                                   true  "ID этапа"
+// @Param        request  body  serializer.LikeLifeCycleStageRequest  true  "Лайк"
+// @Success      200  {object}  serializer.LifeCycleStageFeedItem
+// @Failure      400
+// @Failure      401
+// @Failure      404
+// @Router       /api/life_cycle_stages/{id}/like [post]
 func (h *Handler) LikeLifeCycleStage(ctx *gin.Context) {
 	id, err := parseID(ctx)
 	if err != nil {
@@ -178,7 +236,7 @@ func (h *Handler) LikeLifeCycleStage(ctx *gin.Context) {
 		return
 	}
 
-	engineerID := CurrentEngineerID()
+	engineerID := currentEngineerID(ctx)
 	if err := h.Repository.SetLifeCycleStageLike(engineerID, id, *req.Like == 1); err != nil {
 		h.repositoryError(ctx, err)
 		return
@@ -193,6 +251,19 @@ func (h *Handler) LikeLifeCycleStage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.NewLifeCycleStageFeedItem(lifeCycleStage))
 }
 
+// PublishLifeCycleStage godoc
+// @Summary      Публикация черновика этапа
+// @Tags         life_cycle_stages
+// @Accept       json
+// @Produce      json
+// @Security     BearerAuth
+// @Param        id       path  int                                      true  "ID этапа"
+// @Param        request  body  serializer.PublishLifeCycleStageRequest  true  "Данные публикации"
+// @Success      200  {object}  serializer.LifeCycleStage
+// @Failure      400
+// @Failure      401
+// @Failure      404
+// @Router       /api/life_cycle_stages/{id}/publish [put]
 func (h *Handler) PublishLifeCycleStage(ctx *gin.Context) {
 	id, err := parseID(ctx)
 	if err != nil {
@@ -206,7 +277,7 @@ func (h *Handler) PublishLifeCycleStage(ctx *gin.Context) {
 		return
 	}
 
-	lifeCycleStage, err := h.Repository.PublishLifeCycleStage(CurrentEngineerID(), id, req.Description, *req.PricePerUnit, *req.StagePosition)
+	lifeCycleStage, err := h.Repository.PublishLifeCycleStage(currentEngineerID(ctx), id, req.Description, *req.PricePerUnit, *req.StagePosition)
 	if err != nil {
 		h.repositoryError(ctx, err)
 		return
@@ -215,6 +286,17 @@ func (h *Handler) PublishLifeCycleStage(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, serializer.NewLifeCycleStage(lifeCycleStage))
 }
 
+// DeleteLifeCycleStage godoc
+// @Summary      Удаление этапа
+// @Description  Логическое удаление этапа текущего пользователя.
+// @Tags         life_cycle_stages
+// @Security     BearerAuth
+// @Param        id  path  int  true  "ID этапа"
+// @Success      200
+// @Failure      400
+// @Failure      401
+// @Failure      404
+// @Router       /api/life_cycle_stages/{id} [delete]
 func (h *Handler) DeleteLifeCycleStage(ctx *gin.Context) {
 	id, err := parseID(ctx)
 	if err != nil {
@@ -222,7 +304,7 @@ func (h *Handler) DeleteLifeCycleStage(ctx *gin.Context) {
 		return
 	}
 
-	if err := h.Repository.DeleteLifeCycleStage(CurrentEngineerID(), id); err != nil {
+	if err := h.Repository.DeleteLifeCycleStage(currentEngineerID(ctx), id); err != nil {
 		h.repositoryError(ctx, err)
 		return
 	}

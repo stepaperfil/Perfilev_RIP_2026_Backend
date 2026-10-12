@@ -1,27 +1,32 @@
-# Л/р 3 — веб-сервис REST API
+# Л/р 4 — авторизация JWT, Redis и Swagger
 
 ⬅ [Общее описание проекта и список веток](../../tree/main)
 
 ## Что реализовано в этом спринте
 
-- Бэкенд переведён с HTML-шаблонов на **REST API**: все методы отдают JSON и начинаются с `/api`, тестирование через Postman/Insomnia.
+- Добавлена аутентификация по **JWT** (`golang-jwt/jwt`): метод входа проверяет логин и bcrypt-хеш пароля и выдаёт токен для заголовка `Authorization: Bearer <токен>`.
+- Выход реализован через **блеклист в Redis** (`go-redis/v8`): токен хранится в Redis до окончания срока действия и больше не принимается.
+- Авторизация через middleware `WithAuthCheck`: без токена доступны только чтение (список, лента), вход и регистрация; методы создателя (черновик, добавление, публикация, удаление, лайк, выход) возвращают `401`.
+- Создатель этапа и автор лайка подставляются из токена (автозаполнение `creator_id`), функция-singleton из ЛР3 удалена.
+- Описание методов в **Swagger** (`swaggo/swag`, `gin-swagger`), документация генерируется из комментариев: `http://localhost:8080/swagger/index.html`.
+- Бэкенд работает как **REST API**: все методы отдают JSON и начинаются с `/api`.
 - Изображения и видео этапов загружаются как файлы и хранятся в **MinIO**; в БД сохраняются только сгенерированные латинские имена файлов (`image_key`, `video_key`).
 - Работа с БД только через **GORM**; удалённые этапы клиенту не передаются, удаление логическое.
 - Статусы меняются только вперёд: `черновик` → `опубликован` → `удален`.
-- Пользователь-создатель зафиксирован константой через функцию-singleton `CurrentEngineerID()` (до авторизации в ЛР4).
 - Системные поля (id, статус, создатель, даты) с клиента не принимаются — они вычисляются на бэкенде.
 - Пароль при регистрации хранится в виде bcrypt-хеша.
 
 ## Запуск
 
-1. Поднять PostgreSQL, Adminer и MinIO:
+1. Поднять PostgreSQL, Adminer, Redis и MinIO:
    ```bash
    docker compose -f docker-compose.yml up -d
    docker compose -f docker-compose.minio.yml up -d
    ```
-2. Создать базу ЛР3 (один раз): `docker exec tco-postgres createdb -U tco tco_lab3`
+2. Создать базу ЛР4 (один раз): `docker exec tco-postgres createdb -U tco tco_lab4`
 3. Миграции: `go run ./cmd/migrate`
-4. Сервер: `go run ./cmd/tcoApp` (порт `8080`, можно задать переменной `PORT`)
+4. Документация Swagger (после изменения комментариев): `swag init -g cmd/tcoApp/main.go -o docs`
+5. Сервер: `go run ./cmd/tcoApp` (порт `8080`, можно задать переменной `PORT`)
 
 Настройки читаются из `.env` (библиотека `godotenv`), при его отсутствии используются значения по умолчанию:
 
@@ -29,14 +34,20 @@
 |---|---|
 | `POSTGRES_HOST` / `POSTGRES_PORT` | `localhost` / `5432` |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` | `tco` / `tco` |
-| `POSTGRES_DB` | `tco_lab3` |
+| `POSTGRES_DB` | `tco_lab4` |
 | `MINIO_ENDPOINT` | `localhost:9000` |
 | `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` | `minioadmin` / `minioadmin` |
 | `MINIO_BUCKET` | `tco-assets` |
+| `REDIS_HOST` / `REDIS_PORT` | `localhost` / `6379` |
+| `REDIS_PASSWORD` | `password` |
+| `JWT_SECRET` | `tco-secret` |
+| `JWT_EXPIRES_IN` | `1h` |
 
 ## Методы API
 
-Ошибки возвращаются только кодом ответа без тела: `400` — некорректный запрос, `404` — не найдено, `409` — конфликт, `500` — ошибка сервера.
+Ошибки возвращаются только кодом ответа без тела: `400` — некорректный запрос, `401` — нет действующего токена, `404` — не найдено, `409` — конфликт, `500` — ошибка сервера.
+
+Доступ: **гость** — список, лента, регистрация, вход; **создатель** (с заголовком `Authorization: Bearer <токен>`) — все остальные методы.
 
 ### Этапы жизненного цикла (услуги)
 
@@ -55,8 +66,8 @@
 | Метод | URL | Тело запроса | Ответ |
 |---|---|---|---|
 | POST | `/api/engineers` | JSON: `full_name`, `login`, `password` | `201`, регистрация; `409`, если логин занят |
-| POST | `/api/engineers/login` | JSON: `login`, `password` | `200`, заглушка до ЛР4 |
-| POST | `/api/engineers/logout` | — | `200`, заглушка до ЛР4 |
+| POST | `/api/engineers/login` | JSON: `login`, `password` | `200`, `access_token`, `token_type`, `expires_in`; `401`, если логин или пароль неверны |
+| POST | `/api/engineers/logout` | — (заголовок `Authorization`) | `200`, токен добавлен в блеклист Redis |
 
 ## Таблицы БД
 
@@ -102,4 +113,7 @@
 - **MinIO** (`minio-go/v7`) — хранение изображений и видео
 - **godotenv** — настройки из `.env`
 - **bcrypt** (`golang.org/x/crypto`) — хеширование паролей
-- **Docker Compose** — локальный запуск PostgreSQL, MinIO и Adminer
+- **JWT** (`golang-jwt/jwt`) — аутентификация и авторизация
+- **Redis** (`go-redis/v8`) — блеклист токенов после выхода
+- **Swagger** (`swaggo/swag`, `gin-swagger`) — документация API
+- **Docker Compose** — локальный запуск PostgreSQL, Redis, MinIO и Adminer

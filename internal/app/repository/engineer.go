@@ -8,6 +8,12 @@ func (r *Repository) EngineerLoginExists(login string) (bool, error) {
 	return count > 0, err
 }
 
+func (r *Repository) GetEngineerByLogin(login string) (ds.Engineer, error) {
+	var engineer ds.Engineer
+	err := r.db.Where("login = ?", login).First(&engineer).Error
+	return engineer, err
+}
+
 func (r *Repository) CreateEngineer(fullName, login, passwordHash string) (ds.Engineer, error) {
 	engineer := ds.Engineer{
 		FullName:     fullName,
