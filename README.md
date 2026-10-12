@@ -22,6 +22,9 @@
 - **html/template** — серверная шаблонизация
 - **MinIO** — хранение изображений и видео этапов
 - **PostgreSQL** + **GORM** — хранение данных
+- **REST API** (JSON) — веб-сервис для SPA
+- **JWT** + **Redis** — авторизация и блеклист токенов
+- **Swagger** — описание методов API
 
 ## Дизайн
 
@@ -41,3 +44,5 @@
 |---|---|---|
 | 1 | Дизайн, шаблонизация, MinIO | [`lab1-design-templating`](../../tree/lab1-design-templating) |
 | 2 | PostgreSQL, GORM, CRUD этапов | [`lab2-postgres-gorm`](../../tree/lab2-postgres-gorm) |
+| 3 | Веб-сервис REST API, MinIO | [`lab3-rest-api`](../../tree/lab3-rest-api) |
+| 4 | Авторизация JWT, Redis, Swagger | [`lab4-auth-swagger`](../../tree/lab4-auth-swagger) |
