@@ -32,7 +32,6 @@ func StartServer() {
 	{
 		api.GET("/life_cycle_stages", h.GetLifeCycleStages)
 		api.GET("/life_cycle_stages/feed", h.GetLifeCycleStageFeed)
-		api.GET("/life_cycle_stages/feed/:id", h.GetLifeCycleStageFeed)
 		api.GET("/life_cycle_stages/draft", h.GetDraftLifeCycleStage)
 		api.POST("/life_cycle_stages", h.CreateLifeCycleStage)
 		api.PUT("/life_cycle_stages/:id/publish", h.PublishLifeCycleStage)

@@ -43,8 +43,7 @@
 | Метод | URL | Тело запроса | Ответ |
 |---|---|---|---|
 | GET | `/api/life_cycle_stages?max_price_per_unit=` | — | `200`, список опубликованных этапов; фильтр по цене за единицу (≤); у каждого этапа `likes_count` и признак `is_mine` (0/1 — создатель этапа совпадает с текущим пользователем) |
-| GET | `/api/life_cycle_stages/feed` | — | `200`, первый этап ленты (по порядковому номеру) |
-| GET | `/api/life_cycle_stages/feed/:id?next=true` | — | `200`, этап `:id`, а с `next=true` — следующий за ним; из БД читается одна строка; `404`, если этапа нет |
+| GET | `/api/life_cycle_stages/feed?id=&next=true` | — | `200`, лента: без `id` — первый этап (по порядковому номеру), с `id` — этап `id`, а с `next=true` — следующий за ним; из БД читается одна строка; `404`, если этапа нет |
 | GET | `/api/life_cycle_stages/draft` | — | `200`, черновик текущего пользователя (не более одного); `404`, если черновика нет |
 | POST | `/api/life_cycle_stages` | `multipart/form-data`: `title`, `image` (файл jpg/png/webp/gif), `video` (файл mp4/webm) | `201`, созданный черновик; файлы загружаются в MinIO; `409`, если черновик уже есть |
 | PUT | `/api/life_cycle_stages/:id/publish` | JSON: `description`, `price_per_unit`, `stage_position` | `200`, опубликованный этап; только свой черновик |
@@ -78,10 +77,10 @@
 | `title` | varchar(150) | название |
 | `description` | text | краткое описание |
 | `status` | varchar(20) | `черновик` / `опубликован` / `удален` |
-| `image_key` | varchar(255) | имя файла изображения в MinIO |
-| `video_key` | varchar(255) | имя файла видео в MinIO |
-| `price_per_unit` | bigint | цена за единицу, ₽ (поле фильтрации) |
-| `stage_position` | bigint | порядковый номер этапа |
+| `image_key` | varchar(255), not null | имя файла изображения в MinIO |
+| `video_key` | varchar(255), not null | имя файла видео в MinIO |
+| `price_per_unit` | bigint, null | цена за единицу, ₽ (поле фильтрации); заполняется при публикации |
+| `stage_position` | bigint, null | порядковый номер этапа; заполняется при публикации |
 | `created_at` | timestamptz | дата создания |
 | `formed_at` | timestamptz | дата формирования (публикации) |
 | `creator_id` | bigint, FK → `engineers.id` | создатель |

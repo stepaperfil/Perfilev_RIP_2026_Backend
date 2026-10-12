@@ -15,10 +15,10 @@ type LifeCycleStage struct {
 	Title         string               `gorm:"column:title;type:varchar(150);not null"`
 	Description   string               `gorm:"column:description;type:text"`
 	Status        LifeCycleStageStatus `gorm:"column:status;type:varchar(20);not null"`
-	ImageKey      string               `gorm:"column:image_key;type:varchar(255)"`
-	VideoKey      string               `gorm:"column:video_key;type:varchar(255)"`
-	PricePerUnit  int                  `gorm:"column:price_per_unit;not null;default:0"`
-	StagePosition int                  `gorm:"column:stage_position;not null;default:0"`
+	ImageKey      string               `gorm:"column:image_key;type:varchar(255);not null"`
+	VideoKey      string               `gorm:"column:video_key;type:varchar(255);not null"`
+	PricePerUnit  *int                 `gorm:"column:price_per_unit"`
+	StagePosition *int                 `gorm:"column:stage_position"`
 	CreatedAt     time.Time            `gorm:"column:created_at;not null"`
 	FormedAt      *time.Time           `gorm:"column:formed_at"`
 

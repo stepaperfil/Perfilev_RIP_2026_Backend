@@ -9,7 +9,7 @@ type LifeCycleStageListItem struct {
 	ID           uint   `json:"id"`
 	Title        string `json:"title"`
 	ImageURL     string `json:"image_url"`
-	PricePerUnit int    `json:"price_per_unit"`
+	PricePerUnit *int   `json:"price_per_unit"`
 	LikesCount   int64  `json:"likes_count"`
 	IsMine       int    `json:"is_mine"`
 }
@@ -20,8 +20,8 @@ type LifeCycleStageFeedItem struct {
 	Description   string `json:"description"`
 	ImageURL      string `json:"image_url"`
 	VideoURL      string `json:"video_url"`
-	PricePerUnit  int    `json:"price_per_unit"`
-	StagePosition int    `json:"stage_position"`
+	PricePerUnit  *int   `json:"price_per_unit"`
+	StagePosition *int   `json:"stage_position"`
 	LikesCount    int64  `json:"likes_count"`
 	IsLiked       int    `json:"is_liked"`
 }
@@ -32,8 +32,8 @@ type LifeCycleStage struct {
 	Description   string `json:"description"`
 	ImageURL      string `json:"image_url"`
 	VideoURL      string `json:"video_url"`
-	PricePerUnit  int    `json:"price_per_unit"`
-	StagePosition int    `json:"stage_position"`
+	PricePerUnit  *int   `json:"price_per_unit"`
+	StagePosition *int   `json:"stage_position"`
 }
 
 type LikeLifeCycleStageRequest struct {

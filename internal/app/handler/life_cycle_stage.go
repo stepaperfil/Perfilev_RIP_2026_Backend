@@ -41,14 +41,15 @@ func (h *Handler) GetLifeCycleStageFeed(ctx *gin.Context) {
 
 	var lifeCycleStage ds.LifeCycleStageWithStats
 	var err error
-	if ctx.Param("id") == "" {
+	if q := ctx.Query("id"); q == "" {
 		lifeCycleStage, err = h.Repository.GetFirstFeedLifeCycleStage(engineerID)
 	} else {
-		id, parseErr := parseID(ctx)
+		id64, parseErr := strconv.ParseUint(q, 10, 64)
 		if parseErr != nil {
 			h.errorHandler(ctx, http.StatusBadRequest, parseErr)
 			return
 		}
+		id := uint(id64)
 		if ctx.Query("next") == "true" {
 			lifeCycleStage, err = h.Repository.GetNextFeedLifeCycleStage(engineerID, id)
 		} else {
