@@ -7,10 +7,7 @@
 **Группа:** ИУ5-55Б
 Перфильев Степан Михайлович
 
-## Репозитории проекта
-
-- **Бэкенд** (веб-сервис на Go) — этот репозиторий
-- **Фронтенд** (SPA на React) — [Pefilev_RIP_2026_Frontend](https://github.com/stepaperfil/Pefilev_RIP_2026_Frontend)
+Фронтенд проекта: [Pefilev_RIP_2026_Frontend](https://github.com/stepaperfil/Pefilev_RIP_2026_Frontend)
 
 ## Предметная область
 
